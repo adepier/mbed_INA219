@@ -1,13 +1,13 @@
 /*
  * mbed library program
- *  High-Side Measurement,Bi-Directional CURRENT/POWER MONITOR with I2C Interface
+ *  INA219 High-Side Measurement,Bi-Directional CURRENT/POWER MONITOR with I2C Interface
  *  by Texas Instruments
  *
  * Copyright (c) 2015 Kenji Arai / JH1PJL
  *  http://www.page.sannet.ne.jp/kenjia/index.html
  *  http://mbed.org/users/kenjiArai/
  *      Created: January   25th, 2015
- *      Revised: March     15th, 2015
+ *      Revised: March     22nd, 2015
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
@@ -31,7 +31,7 @@
 /////////// ADDRESS /////////////////////////////
 //  7bit address = 0b1000000(0x40)
 //  G=GND, V=VS+, A=SDA, L=SCL
-//  e.g. _GG: A1=GND, A0=GND
+//  e.g. _VG: A1=VS+, A0=GND
 //    -> Please make sure your H/W configuration
 // Set data into "addr"
 #define INA219_ADDR_GG             (0x40 << 1)
@@ -94,40 +94,6 @@
 #define INA219_PAR_M_BUS_CONT      6
 #define INA219_PAR_M_SHNTBUS_CONT  7
 
-/////////// BIT DEFINITION (Internal use) ///////
-#define INA219_CFG_RESET           (1UL << 15)
-
-#define INA219_CFG_B32V            (1UL << 13)
-#define INA219_CFG_B16V            (0UL << 13)
-
-#define INA219_CFG_PGA_DIV_1       (0UL << 11)
-#define INA219_CFG_PGA_DIV_2       (1UL << 11)
-#define INA219_CFG_PGA_DIV_4       (2UL << 11)
-#define INA219_CFG_PGA_DIV_8       (3UL << 11)
-
-#define INA219_CFG_BADC            (0xf << 7)
-
-#define INA219_CFG_SADC_9B_84U     (0x0 << 3)
-#define INA219_CFG_SADC_10B_148U   (0x1 << 3)
-#define INA219_CFG_SADC_11B_276U   (0x2 << 3)
-#define INA219_CFG_SADC_12B_532U   (0x3 << 3)
-#define INA219_CFG_SADC_2S_1R06M   (0x9 << 3)
-#define INA219_CFG_SADC_4S_2R13M   (0xa << 3)
-#define INA219_CFG_SADC_8S_4R26M   (0xb << 3)
-#define INA219_CFG_SADC_16S_8R51M  (0xc << 3)
-#define INA219_CFG_SADC_32S_17M    (0xd << 3)
-#define INA219_CFG_SADC_64S_34M    (0xe << 3)
-#define INA219_CFG_SADC_128S_68M   (0xf << 3)
-
-#define INA219_CFG_MODE_PDWN       (0UL << 0)
-#define INA219_CFG_MODE_SHNTTRG    (1UL << 0)
-#define INA219_CFG_MODE_BUSTRG     (2UL << 0)
-#define INA219_CFG_MODE_SBTRG      (3UL << 0)
-#define INA219_CFG_MODE_ADC_OFF    (4UL << 0)
-#define INA219_CFG_MODE_SHNT_CONT  (5UL << 0)
-#define INA219_CFG_MODE_BUS_CONT   (6UL << 0)
-#define INA219_CFG_MODE_SB_CONT    (7UL << 0)
-
 ////////////// DATA TYPE DEFINITION ///////////////////////
 typedef struct {
     uint8_t addr;
@@ -142,9 +108,9 @@ typedef struct {
 ////////////// DEFAULT SETTING ////////////////////////////
 // Standard parameter for easy set-up
 const INA219_TypeDef ina219_std_paramtr = {
-    INA219_ADDR_GG,         // I2C Address, Acc & Magn
+    INA219_ADDR_VV,         // I2C Address, Acc & Magn
     INA219_PAR_R_100MOHM,   // 100 milli-ohm
-    INA219_CFG_B16V,        // 16V max
+    INA219_PAR_V_16V,       // 16V max
     INA219_PAR_G_40MV,      // Gain x1 (40mV -> 400mA max with 100 milliOhm)
     INA219_PAR_S_12B_X1_5328US, // resolution 12bit & one time convertion
     INA219_PAR_M_SHNTBUS_CONT,  // Measure continuously both Shunt voltage and Bus voltage
@@ -173,6 +139,7 @@ const INA219_TypeDef ina219_std_paramtr = {
  * }
  * //--------- Detail setting -----------------
  * #include "mbed.h"
+ * #include "INA219.h"
  *
  * const INA219_TypeDef ina219_my_paramtr = {
  *    INA219_ADDR_GG,         // I2C Address, Acc & Magn
@@ -180,7 +147,7 @@ const INA219_TypeDef ina219_std_paramtr = {
  *    INA219_CFG_B16V,        // 16V max
  *    INA219_PAR_G_40MV,      // Gain x1
  *    INA219_PAR_M_SHNTBUS_CONT, // Measure continuously
- *    0                       // Calibration data is nothing
+ *    16384                   // Calibration data is nothing
  * };
  *
  * I2C    i2c(dp5,dp27);
@@ -295,5 +262,42 @@ private:
     uint8_t dt[4];
 
 };
+
+//-------------------------------------------------------------------------------------------------
+// Following parts are only internal use and you only use it if you control internal config reg.
+//-------------------------------------------------------------------------------------------------
+/////////// BIT DEFINITION ////////////////////////////////
+#define INA219_CFG_RESET           (1UL << 15)
+
+#define INA219_CFG_B32V            (1UL << 13)
+#define INA219_CFG_B16V            (0UL << 13)
+
+#define INA219_CFG_PGA_DIV_1       (0UL << 11)
+#define INA219_CFG_PGA_DIV_2       (1UL << 11)
+#define INA219_CFG_PGA_DIV_4       (2UL << 11)
+#define INA219_CFG_PGA_DIV_8       (3UL << 11)
+
+#define INA219_CFG_BADC            (0xf << 7)
+
+#define INA219_CFG_SADC_9B_84U     (0x0 << 3)
+#define INA219_CFG_SADC_10B_148U   (0x1 << 3)
+#define INA219_CFG_SADC_11B_276U   (0x2 << 3)
+#define INA219_CFG_SADC_12B_532U   (0x3 << 3)
+#define INA219_CFG_SADC_2S_1R06M   (0x9 << 3)
+#define INA219_CFG_SADC_4S_2R13M   (0xa << 3)
+#define INA219_CFG_SADC_8S_4R26M   (0xb << 3)
+#define INA219_CFG_SADC_16S_8R51M  (0xc << 3)
+#define INA219_CFG_SADC_32S_17M    (0xd << 3)
+#define INA219_CFG_SADC_64S_34M    (0xe << 3)
+#define INA219_CFG_SADC_128S_68M   (0xf << 3)
+
+#define INA219_CFG_MODE_PDWN       (0UL << 0)
+#define INA219_CFG_MODE_SHNTTRG    (1UL << 0)
+#define INA219_CFG_MODE_BUSTRG     (2UL << 0)
+#define INA219_CFG_MODE_SBTRG      (3UL << 0)
+#define INA219_CFG_MODE_ADC_OFF    (4UL << 0)
+#define INA219_CFG_MODE_SHNT_CONT  (5UL << 0)
+#define INA219_CFG_MODE_BUS_CONT   (6UL << 0)
+#define INA219_CFG_MODE_SB_CONT    (7UL << 0)
 
 #endif  //  MBED_INA219

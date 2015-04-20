@@ -1,13 +1,13 @@
 /*
  * mbed library program
- *  High-Side Measurement,Bi-Directional CURRENT/POWER MONITOR with I2C Interface
+ *  INA219 High-Side Measurement,Bi-Directional CURRENT/POWER MONITOR with I2C Interface
  *  by Texas Instruments
  *
  * Copyright (c) 2015 Kenji Arai / JH1PJL
  *  http://www.page.sannet.ne.jp/kenjia/index.html
  *  http://mbed.org/users/kenjiArai/
  *      Created: January   25th, 2015
- *      Revised: March     15th, 2015
+ *      Revised: March     22nd, 2015
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
@@ -22,7 +22,7 @@
 INA219::INA219 (PinName p_sda, PinName p_scl, const INA219_TypeDef *ina219_parameter) :
     _i2c(p_sda, p_scl)
 {
-    _i2c.frequency(100000);
+    _i2c.frequency(400000);
     ina219_set_data = *ina219_parameter;
     initialize();
 }
@@ -30,7 +30,7 @@ INA219::INA219 (PinName p_sda, PinName p_scl, const INA219_TypeDef *ina219_param
 INA219::INA219 (PinName p_sda, PinName p_scl, uint8_t addr) :
     _i2c(p_sda, p_scl)
 {
-    _i2c.frequency(100000);
+    _i2c.frequency(400000);
     // Use standard setting
     ina219_set_data = ina219_std_paramtr;
     // Change user defined address
@@ -41,7 +41,7 @@ INA219::INA219 (PinName p_sda, PinName p_scl, uint8_t addr) :
 INA219::INA219 (PinName p_sda, PinName p_scl) :
     _i2c(p_sda, p_scl)
 {
-    _i2c.frequency(100000);
+    _i2c.frequency(400000);
     // Use standard setting
     ina219_set_data = ina219_std_paramtr;
     initialize();
@@ -49,14 +49,14 @@ INA219::INA219 (PinName p_sda, PinName p_scl) :
 
 INA219::INA219 (I2C& p_i2c, const INA219_TypeDef *ina219_parameter) : _i2c(p_i2c)
 {
-    _i2c.frequency(100000);
+    _i2c.frequency(400000);
     ina219_set_data = *ina219_parameter;
     initialize();
 }
 
 INA219::INA219 (I2C& p_i2c, uint8_t addr) : _i2c(p_i2c)
 {
-    _i2c.frequency(100000);
+    _i2c.frequency(400000);
     // Use standard setting
     ina219_set_data = ina219_std_paramtr;
     // Change user defined address
@@ -66,7 +66,7 @@ INA219::INA219 (I2C& p_i2c, uint8_t addr) : _i2c(p_i2c)
 
 INA219::INA219 (I2C& p_i2c) : _i2c(p_i2c)
 {
-    _i2c.frequency(100000);
+    _i2c.frequency(400000);
     // Use standard setting
     ina219_set_data = ina219_std_paramtr;
     initialize();
@@ -78,8 +78,8 @@ float INA219::read_current()
     dt[0] = INA219_CURRENT;
     _i2c.write((int)ina219_set_data.addr, (char *)dt, 1, true);
     _i2c.read((int)ina219_set_data.addr, (char *)dt, 2, false);
-    uint16_t data = (dt[0] << 8) | dt[1];
-    return (float)data * 0.025f;
+    int16_t data = (dt[0] << 8) | dt[1];
+    return (float)data * 25 /1000;
 }
 
 /////////////// Read Power ////////////////////////////////
@@ -88,8 +88,8 @@ float INA219::read_power()
     dt[0] = INA219_POWER;
     _i2c.write((int)ina219_set_data.addr, (char *)dt, 1, true);
     _i2c.read((int)ina219_set_data.addr, (char *)dt, 2, false);
-    uint16_t data = (dt[0] << 8) + dt[1];
-    return (float)data * 0.0005;
+    int16_t data = (dt[0] << 8) | dt[1];
+    return (float)data / 2000;
 }
 
 /////////////// Read Bus_volt /////////////////////////////
@@ -98,8 +98,8 @@ float INA219::read_bus_voltage()
     dt[0] = INA219_BUS_VOLT;
     _i2c.write((int)ina219_set_data.addr, (char *)dt, 1, true);
     _i2c.read((int)ina219_set_data.addr, (char *)dt, 2, false);
-    uint16_t data = ((dt[0] << 8) + dt[1]) >> 3;
-    return (float)data * 0.004f;
+    int16_t data = ((dt[0] << 8) | dt[1]) >> 3;
+    return (float)data * 4 / 1000;
 }
 
 /////////////// Read Shunt volt ///////////////////////////
@@ -108,7 +108,7 @@ float INA219::read_shunt_voltage()
     dt[0] = INA219_SHUNT_V;
     _i2c.write((int)ina219_set_data.addr, (char *)dt, 1, true);
     _i2c.read((int)ina219_set_data.addr, (char *)dt, 2, false);
-    uint16_t data = (dt[0] << 8) + dt[1];
+    int16_t data = (dt[0] << 8) | dt[1];
     return (float)data;
 }
 
@@ -117,8 +117,8 @@ float INA219::read_current_by_shuntvolt()
     dt[0] = INA219_SHUNT_V;
     _i2c.write((int)ina219_set_data.addr, (char *)dt, 1, true);
     _i2c.read((int)ina219_set_data.addr, (char *)dt, 2, false);
-    uint16_t data = (dt[0] << 8) + dt[1];
-    return (float)data * 0.1;
+    int16_t data = (dt[0] << 8) | dt[1];
+    return (float)data / 10;
 //    return ((float)data / ina219_set_data.shunt_register) / 1000;
 }
 
