@@ -7,7 +7,7 @@
  *  http://www.page.sannet.ne.jp/kenjia/index.html
  *  http://mbed.org/users/kenjiArai/
  *      Created: January   25th, 2015
- *      Revised: March     22nd, 2015
+ *      Revised: May        5th, 2015
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
@@ -185,11 +185,11 @@ uint8_t INA219::write_reg(uint8_t addr, uint8_t data)
 void INA219::initialize()
 {
     uint16_t data = 0;
-    data  = ina219_set_data.v_max << 13;
-    data += ina219_set_data.gain << 11;
-    data += ina219_set_data.adc_resolution << 3; // use same vale for BUS & SHUNT
-    data += ina219_set_data.adc_resolution << 6;
-    data += ina219_set_data.mode;
+    data  = (ina219_set_data.v_max & 0x01) << 13;
+    data |= (ina219_set_data.gain & 0x03) << 11;
+    data |= (ina219_set_data.bus_adc_resolution & 0x0f) << 6;
+    data |= (ina219_set_data.Shunt_adc_resolution & 0x0f) << 3;
+    data |= (ina219_set_data.mode & 0x07);
     dt[0] = INA219_CONFIG;
     dt[1] = data >> 8;    // MSB 1st
     dt[2] = data & 0xff;  // LSB 2nd

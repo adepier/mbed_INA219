@@ -7,7 +7,7 @@
  *  http://www.page.sannet.ne.jp/kenjia/index.html
  *  http://mbed.org/users/kenjiArai/
  *      Created: January   25th, 2015
- *      Revised: March     22nd, 2015
+ *      Revised: May        5th, 2015
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
@@ -66,17 +66,29 @@
 #define INA219_PAR_R_MORM(x)       (x)
 // Set data into "v_max"
 #define INA219_PAR_V_16V           0
-#define INA219_PAR_V_32V           1
+#define INA219_PAR_V_32V           1    // Default
 // Set data into "gain"
 #define INA219_PAR_G_40MV          0    // 400[mA] max if R=0.1[Ohm]
 #define INA219_PAR_G_80MV          1
 #define INA219_PAR_G_160MV         2
-#define INA219_PAR_G_320MV         3
-// Set data into "adc_resolution"
+#define INA219_PAR_G_320MV         3    // Default
+// Set data into "bus_adc_resolution"
+#define INA219_PAR_B_9B_X1_84US    0x0
+#define INA219_PAR_B_10B_X1_148US  0x1
+#define INA219_PAR_B_11B_X1_276US  0x2
+#define INA219_PAR_B_12B_X1_532US  0x3  // Default
+#define INA219_PAR_B_12B_X2_1R06MS 0x9
+#define INA219_PAR_B_12B_X4_2R13MS 0xa
+#define INA219_PAR_B_12B_X8_4R26MS 0xb
+#define INA219_PAR_B_12B_X16_8MS   0xc
+#define INA219_PAR_B_12B_X32_17MS  0xd
+#define INA219_PAR_B_12B_X64_34MS  0xe
+#define INA219_PAR_B_12B_X128_68MS 0xf
+// Set data into "shunt_adc_resolution"
 #define INA219_PAR_S_9B_X1_84US    0x0
 #define INA219_PAR_S_10B_X1_148US  0x1
 #define INA219_PAR_S_11B_X1_276US  0x2
-#define INA219_PAR_S_12B_X1_5328US 0x3
+#define INA219_PAR_S_12B_X1_532US  0x3  // Default
 #define INA219_PAR_S_12B_X2_1R06MS 0x9
 #define INA219_PAR_S_12B_X4_2R13MS 0xa
 #define INA219_PAR_S_12B_X8_4R26MS 0xb
@@ -92,29 +104,37 @@
 #define INA219_PAR_M_ADC_OFF       4
 #define INA219_PAR_M_SHNT_CONT     5
 #define INA219_PAR_M_BUS_CONT      6
-#define INA219_PAR_M_SHNTBUS_CONT  7
+#define INA219_PAR_M_SHNTBUS_CONT  7    // Default
 
 ////////////// DATA TYPE DEFINITION ///////////////////////
 typedef struct {
+    // I2C Address
     uint8_t addr;
+    // CONFIG REG
     uint8_t shunt_register;
     uint8_t v_max;
     uint8_t gain;
-    uint8_t adc_resolution;
+    uint8_t bus_adc_resolution;
+    uint8_t Shunt_adc_resolution;
     uint8_t mode;
+    // CALBLATION REG
     uint16_t calibration_data;
 } INA219_TypeDef;
 
 ////////////// DEFAULT SETTING ////////////////////////////
 // Standard parameter for easy set-up
 const INA219_TypeDef ina219_std_paramtr = {
-    INA219_ADDR_VV,         // I2C Address, Acc & Magn
-    INA219_PAR_R_100MOHM,   // 100 milli-ohm
-    INA219_PAR_V_16V,       // 16V max
-    INA219_PAR_G_40MV,      // Gain x1 (40mV -> 400mA max with 100 milliOhm)
-    INA219_PAR_S_12B_X1_5328US, // resolution 12bit & one time convertion
+    // I2C Address
+    INA219_ADDR_VV,
+    // CONFIG REG
+    INA219_PAR_R_100MOHM,       // 100 milli-ohm
+    INA219_PAR_V_16V,           // 16V max
+    INA219_PAR_G_40MV,          // Gain x1 (40mV -> 400mA max with 100 milliOhm)
+    INA219_PAR_B_12B_X1_532US,  // Bus/resolution 12bit & one time convertion
+    INA219_PAR_S_12B_X1_532US,  // Shunt/resolution 12bit & one time convertion
     INA219_PAR_M_SHNTBUS_CONT,  // Measure continuously both Shunt voltage and Bus voltage
-    16384                    // Calibration data is nothing
+    // CALBLATION REG
+    16384                       // Calibration data
 };
 
 /** INA219 High-Side Measurement,Bi-Directional CURRENT/POWER MONITOR with I2C Interface
@@ -142,12 +162,15 @@ const INA219_TypeDef ina219_std_paramtr = {
  * #include "INA219.h"
  *
  * const INA219_TypeDef ina219_my_paramtr = {
- *    INA219_ADDR_GG,         // I2C Address, Acc & Magn
- *    INA219_PAR_R_100MOHM,   // 100 milli-ohm
- *    INA219_CFG_B16V,        // 16V max
- *    INA219_PAR_G_40MV,      // Gain x1
- *    INA219_PAR_M_SHNTBUS_CONT, // Measure continuously
- *    16384                   // Calibration data is nothing
+ *    // I2C Address
+ *    INA219_ADDR_GG,
+ *    // CONFIG Reg.
+ *    INA219_PAR_R_100MOHM,     // 100 milli-ohm
+ *    INA219_CFG_B16V,          // 16V max
+ *    INA219_PAR_G_40MV,        // Gain x1
+ *    INA219_PAR_M_SHNTBUS_CONT,// Measure continuously
+ *    // CALIB
+ *    16384                     // Calibration data is nothing
  * };
  *
  * I2C    i2c(dp5,dp27);
@@ -264,7 +287,7 @@ private:
 };
 
 //-------------------------------------------------------------------------------------------------
-// Following parts are only internal use and you only use it if you control internal config reg.
+// Following parts are only internal use and you only use it if you manage an internal config reg.
 //-------------------------------------------------------------------------------------------------
 /////////// BIT DEFINITION ////////////////////////////////
 #define INA219_CFG_RESET           (1UL << 15)
