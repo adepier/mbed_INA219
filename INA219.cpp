@@ -3,32 +3,26 @@
  *  INA219 High-Side Measurement,Bi-Directional CURRENT/POWER MONITOR with I2C Interface
  *  by Texas Instruments
  *
- * Copyright (c) 2015 Kenji Arai / JH1PJL
+ * Copyright (c) 2015,'17 Kenji Arai / JH1PJL
  *  http://www.page.sannet.ne.jp/kenjia/index.html
  *  http://mbed.org/users/kenjiArai/
- *      Created: January   25th, 2015
- *      Revised: May        5th, 2015
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *      Created: January    25th, 2015
+ *      Revised: August     23rd, 2017
  */
 
 #include    "mbed.h"
 #include    "INA219.h"
 
-INA219::INA219 (PinName p_sda, PinName p_scl, const INA219_TypeDef *ina219_parameter) :
-    _i2c(p_sda, p_scl)
+INA219::INA219 (PinName p_sda, PinName p_scl, const INA219_TypeDef *ina219_parameter)
+ : _i2c_p(new I2C(p_sda, p_scl)), _i2c(*_i2c_p)
 {
     _i2c.frequency(400000);
     ina219_set_data = *ina219_parameter;
     initialize();
 }
 
-INA219::INA219 (PinName p_sda, PinName p_scl, uint8_t addr) :
-    _i2c(p_sda, p_scl)
+INA219::INA219 (PinName p_sda, PinName p_scl, uint8_t addr)
+ : _i2c_p(new I2C(p_sda, p_scl)), _i2c(*_i2c_p)
 {
     _i2c.frequency(400000);
     // Use standard setting
@@ -38,8 +32,8 @@ INA219::INA219 (PinName p_sda, PinName p_scl, uint8_t addr) :
     initialize();
 }
 
-INA219::INA219 (PinName p_sda, PinName p_scl) :
-    _i2c(p_sda, p_scl)
+INA219::INA219 (PinName p_sda, PinName p_scl)
+ : _i2c_p(new I2C(p_sda, p_scl)), _i2c(*_i2c_p)
 {
     _i2c.frequency(400000);
     // Use standard setting
@@ -47,14 +41,16 @@ INA219::INA219 (PinName p_sda, PinName p_scl) :
     initialize();
 }
 
-INA219::INA219 (I2C& p_i2c, const INA219_TypeDef *ina219_parameter) : _i2c(p_i2c)
+INA219::INA219 (I2C& p_i2c, const INA219_TypeDef *ina219_parameter)
+ : _i2c(p_i2c)
 {
     _i2c.frequency(400000);
     ina219_set_data = *ina219_parameter;
     initialize();
 }
 
-INA219::INA219 (I2C& p_i2c, uint8_t addr) : _i2c(p_i2c)
+INA219::INA219 (I2C& p_i2c, uint8_t addr)
+ : _i2c(p_i2c)
 {
     _i2c.frequency(400000);
     // Use standard setting
@@ -206,3 +202,5 @@ void INA219::frequency(int hz)
 {
     _i2c.frequency(hz);
 }
+
+

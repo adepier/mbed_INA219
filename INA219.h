@@ -3,17 +3,11 @@
  *  INA219 High-Side Measurement,Bi-Directional CURRENT/POWER MONITOR with I2C Interface
  *  by Texas Instruments
  *
- * Copyright (c) 2015 Kenji Arai / JH1PJL
+ * Copyright (c) 2015,'17 Kenji Arai / JH1PJL
  *  http://www.page.sannet.ne.jp/kenjia/index.html
  *  http://mbed.org/users/kenjiArai/
- *      Created: January   25th, 2015
- *      Revised: May        5th, 2015
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
- * AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *      Created: January    25th, 2015
+ *      Revised: August     23rd, 2017
  */
 /*
  *---------------- REFERENCE ----------------------------------------------------------------------
@@ -275,7 +269,8 @@ public:
     uint8_t write_reg(uint8_t addr, uint8_t data);
 
 protected:
-    I2C  _i2c;
+    I2C *_i2c_p;
+    I2C &_i2c;
 
     void initialize(void);
 
@@ -324,3 +319,4 @@ private:
 #define INA219_CFG_MODE_SB_CONT    (7UL << 0)
 
 #endif  //  MBED_INA219
+
